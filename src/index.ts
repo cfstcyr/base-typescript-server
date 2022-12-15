@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import 'dotenv/config';
 import './utils/logger';
 import { container } from 'tsyringe';
 import { Application } from './app';
