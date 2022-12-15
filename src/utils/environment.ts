@@ -1,46 +1,61 @@
-import { EnvironmentConfig, DEFAULT_ENV } from '../configs/environment';
-import { HttpException } from '../models/http-exception';
+import { cleanEnv, num, str } from 'envalid';
 
-function tryEnv<K extends keyof EnvironmentConfig>(
-    name: K,
-): string | undefined {
-    return (
-        (process.env[name] as string | undefined) ??
-        (DEFAULT_ENV[name] as string | undefined) ??
-        undefined
-    );
-}
+const env = cleanEnv(process.env, {
+    NODE_ENV: str({
+        choices: ['development', 'test', 'production', 'staging'],
+    }),
+    PORT: num({ default: 3000 }),
 
-function tryEnvNumber<K extends keyof EnvironmentConfig>(
-    name: K,
-): number | undefined {
-    const val = process.env[name] ?? DEFAULT_ENV[name];
+    CORS: str({ default: '*' }),
+    LOG_DIR: str({ default: './logs' }),
+});
 
-    if (typeof val === 'number') return val;
-    if (!val) return undefined;
+export { env };
 
-    const n = Number(val);
+// function tryEnv<K extends keyof EnvironmentConfig>(
+//     name: K,
+// ): string | undefined {
+//     return (
+//         (process.env[name] as string | undefined) ??
+//         (DEFAULT_ENV[name] as string | undefined) ??
+//         undefined
+//     );
+// }
 
-    if (isNaN(n)) return undefined;
-    return n;
-}
+// function tryEnvNumber<K extends keyof EnvironmentConfig>(
+//     name: K,
+// ): number | undefined {
+//     const val = process.env[name] ?? DEFAULT_ENV[name];
 
-function env<K extends keyof EnvironmentConfig>(name: K): string {
-    const val = tryEnv(name);
+//     if (typeof val === 'number') return val;
+//     if (!val) return undefined;
 
-    if (!val)
-        throw new HttpException(`No environement variable set for "${name}"`);
+//     const n = Number(val);
 
-    return val;
-}
+//     if (isNaN(n)) return undefined;
+//     return n;
+// }
 
-function envNumber<K extends keyof EnvironmentConfig>(name: K): number {
-    const val = tryEnvNumber(name);
+// function env<K extends keyof EnvironmentConfig>(name: K): string {
+//     const val = tryEnv(name);
 
-    if (!val)
-        throw new HttpException(`No environement variable set for "${name}"`);
+//     if (!val)
+//         throw new HttpException(`No environement variable set for "${name}"`);
 
-    return val;
-}
+//     return val;
+// }
 
-export { tryEnv, tryEnvNumber, env, envNumber };
+// function envNumber<K extends keyof EnvironmentConfig>(name: K): number {
+//     const val = tryEnvNumber(name);
+
+//     if (!val)
+//         throw new HttpException(`No environement variable set for "${name}"`);
+
+//     return val;
+// }
+
+// function isDev(): boolean {
+//     return tryEnv('NODE_ENV') === 'development';
+// }
+
+// export { tryEnv, tryEnvNumber, env, envNumber, isDev };

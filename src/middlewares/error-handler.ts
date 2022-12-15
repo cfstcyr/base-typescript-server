@@ -2,6 +2,7 @@ import express from 'express';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import { HttpException } from '../models/http-exception';
 import { env } from '../utils/environment';
+import { logger } from '../utils/logger';
 
 interface ErrorResponse {
     message: string;
@@ -26,9 +27,16 @@ export function errorHandler(
         error: getReasonPhrase(status),
     };
 
-    if (env('NODE_ENV') === 'development') {
+    res.locals.message = error.message;
+    res.locals.error = env.isDev ? error : {};
+
+    if (env.isDev) {
         response.stack = error.stack?.split('\n');
     }
+
+    logger.error(
+        `${req.method} ${req.path} ${status}: ${error.name} - ${error.message}\n${error.stack}`,
+    );
 
     res.status(status).json(response);
 }

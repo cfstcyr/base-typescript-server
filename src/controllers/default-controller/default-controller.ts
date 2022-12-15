@@ -13,5 +13,14 @@ export class DefaultController extends AbstractController {
         router.get('/', (req, res) => {
             res.status(StatusCodes.OK).json({ hello: 'world!' });
         });
+
+        router.get('/stack-error', (req, res, next) => {
+            try {
+                const a = (): void => a();
+                a();
+            } catch (e) {
+                next(e);
+            }
+        });
     }
 }

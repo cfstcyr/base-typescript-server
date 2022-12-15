@@ -6,10 +6,13 @@ import { SYMBOLS } from './constants/symbols';
 import { errorHandler } from './middlewares/error-handler';
 import { HttpException } from './models/http-exception';
 import { StatusCodes } from 'http-status-codes';
-import logger from 'morgan';
+import morgan from 'morgan';
 import cors from 'cors';
-import { env, tryEnv } from './utils/environment';
+import hpp from 'hpp';
+import { env } from './utils/environment';
 import { resolve } from 'path';
+import { logger } from './utils/logger';
+import helmet from 'helmet';
 
 @singleton()
 export class Application {
@@ -21,30 +24,34 @@ export class Application {
     ) {
         this.app = express();
 
-        this.configure();
+        this.configureMiddlewares();
+        this.configureRoutes();
     }
 
     listen(port: number | string) {
-        this.app.listen(port, () =>
-            console.log(`Server up on port ${port} (http://localhost:${port})`),
-        );
+        this.app.listen(port, () => {
+            logger.info(`🏔️ Enviroment : ${env.NODE_ENV}`);
+            logger.info(
+                `🚀 Server up on port ${port} (http://localhost:${port})`,
+            );
+        });
     }
 
-    private configure() {
+    private configureMiddlewares() {
         this.app.use(
-            logger('dev', {
+            morgan('dev', {
                 skip: function (req, res) {
-                    return tryEnv('NODE_ENV') === 'development'
-                        ? false
-                        : res.statusCode < 400;
+                    return env.isDev ? false : res.statusCode < 400;
                 },
             }),
         );
-
         this.app.use(express.static(resolve(__dirname, '../public')));
+        this.app.use(cors({ origin: env.CORS }));
+        this.app.use(hpp());
+        this.app.use(helmet());
+    }
 
-        this.app.use(cors({ origin: env('CORS') }));
-
+    private configureRoutes() {
         for (const controller of this.controllers) {
             controller.use(this.app);
         }
