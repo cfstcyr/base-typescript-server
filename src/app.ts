@@ -7,7 +7,8 @@ import { errorHandler } from './middlewares/error-handler';
 import { HttpException } from './models/http-exception';
 import { StatusCodes } from 'http-status-codes';
 import logger from 'morgan';
-import { tryEnv } from './utils/environment';
+import cors from 'cors';
+import { env, tryEnv } from './utils/environment';
 import { resolve } from 'path';
 
 @singleton()
@@ -25,9 +26,7 @@ export class Application {
 
     listen(port: number | string) {
         this.app.listen(port, () =>
-            console.log(
-                `Application up on port ${port}.\n\tVisit http://localhost:${port}.`,
-            ),
+            console.log(`Server up on port ${port} (http://localhost:${port})`),
         );
     }
 
@@ -43,6 +42,8 @@ export class Application {
         );
 
         this.app.use(express.static(resolve(__dirname, '../public')));
+
+        this.app.use(cors({ origin: env('CORS') }));
 
         for (const controller of this.controllers) {
             controller.use(this.app);
