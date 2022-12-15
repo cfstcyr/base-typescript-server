@@ -15,6 +15,8 @@ RUN npm run build
 FROM node:19-alpine as prod
 WORKDIR /usr/src/app
 RUN chown node:node ./
+RUN mkdir -p dist/logs
+RUN chown node:node ./dist/logs
 USER node
 COPY package.json package-lock.json ./
 EXPOSE 3000
