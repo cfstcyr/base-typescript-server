@@ -56,7 +56,7 @@ export class Application {
             controller.use(this.app);
         }
 
-        this.app.get('**', (req, res, next) =>
+        this.app.use('**', (req, res, next) =>
             next(
                 new HttpException(
                     `Cannot ${req.method} for ${req.path}`,
